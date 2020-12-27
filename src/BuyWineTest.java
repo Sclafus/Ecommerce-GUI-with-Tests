@@ -1,3 +1,4 @@
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -5,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -12,30 +14,50 @@ import org.junit.jupiter.params.provider.CsvSource;
 public class BuyWineTest {
 
 	private ControllerLogin loginobj;
+	private ControllerHomepageUser homepageobj;
 
 	@ParameterizedTest
-	@CsvSource({ "user@user.com, pwd", "employee@employee.com, pwd", "admin@admin.com, pwd", "asd@asd.com, pwd",
-			", asd", "asd@asd.com," })
-	public void procedure(String mail, String pass){
-		login(mail, pass);
+	@CsvSource({ "user@user.com, pwd, 20, wine1, producer1, 2015, notes1, 10, grapes1" })
+	/*
+	 * "employee@employee.com, pwd", "admin@admin.com, pwd", "asd@asd.com, pwd",
+	 * ", asd", "asd@asd.com," })
+	 */
+	public void procedure(String mail, String pass, int wine_id, String wine_name, String wine_producer, int wine_year,
+			String wine_notes, int wine_quantity, String wine_grapes) {
+		int permission = login(mail, pass);
+		User user = new User("name", "sur", mail, pass, permission);
+
+		if (permission > 0) {
+			Wine wine = new Wine(wine_id, wine_name, wine_producer, wine_year, wine_notes, wine_quantity, wine_grapes);
+			int addResult = addWine(wine, user);
+
+			if (addResult == 0) {
+				System.out.println("yay");
+			} else {
+				System.out.println("sad");
+			}
+		}
 	}
 
 	/**
 	 * Test the login with an user, an employee and an admin. Also checks with a non
-	 * registered user, and some with empty parameters.
-	 * TODO finish this javadoc
+	 * registered user, and some with empty parameters. TODO finish this javadoc
+	 * 
 	 * @param mail mail of the user
 	 * @param pass password of the user
+	 * @return 1, 2 or 3 in case of success, based on the permission of the user,
+	 *         else a number < 0
 	 */
 	@ParameterizedTest
-	public void login(String mail, String pass) {
+	@CsvSource({ "user@user.com, pwd","employee@employee.com, pwd", "admin@admin.com, pwd", "asd@asd.com, pwd",
+	  ", asd", "asd@asd.com," })
+	public int login(String mail, String pass) {
 		loginobj = new ControllerLogin();
 		try {
 			int res = loginobj.login(mail, pass);
-			if(res == -3){
+			if (res == -3) {
 				fail("Server is unreachable");
 			}
-			System.out.format("\nmail: %s pass: %s\nres: %d\n",mail, pass, res);
 			switch (res) {
 
 				case 1:
@@ -56,15 +78,20 @@ public class BuyWineTest {
 					assertEquals(3, res);
 					break;
 
+				case 0:
+					assertAll(() -> assertNotNull(mail), () -> assertNotNull(pass));
+					assertEquals(0, res);
+					break;
+
 				case -1:
 					// email is not valid (not an email)
 					assertEquals(false, loginobj.isMail(mail));
 					break;
 
 				case -2:
-					if(pass == null){
+					if (pass == null) {
 						assertNull(pass);
-					} else if(mail == null){
+					} else if (mail == null) {
 						assertNull(mail);
 					} else {
 						assertAll(() -> assertNull(mail), () -> assertNull(pass));
@@ -74,9 +101,70 @@ public class BuyWineTest {
 				case -4:
 					fail("returned object is not a User object");
 					break;
+
+				default:
+					System.out.println(res);
+					fail("Unknown output");
+					break;
 			}
+			return res;
 		} catch (IOException e) {
 			fail("IOException");
+			return -1;
+		}
+	}
+
+	/**
+	 * TODO Do this javadoc
+	 * 
+	 * @param wine
+	 * @param quantity
+	 * @param user
+	 */
+	@ParameterizedTest
+	public int addWine(Wine wine, User user) {
+		homepageobj = new ControllerHomepageUser();
+		ArrayList<Wine> wines = homepageobj.initData(user);
+
+		try {
+			int result = homepageobj.addToCart(wine, wine.getQuantity());
+			switch (result) {
+				case 0:
+					// everything is ok
+					assertAll(() -> assertTrue(wine.getQuantity() > 0), () -> assertTrue(user.getPermission() > 0));
+					break;
+
+				case -1:
+					// user does not have the sufficient permissions
+					assertTrue(user.getPermission() < 1);
+					break;
+
+				case -2:
+					fail("this should never happen");
+					break;
+
+				case -3:
+					// quantity is negative
+					assertTrue(wine.getQuantity() <= 0);
+					break;
+
+				case -4:
+					fail("unexpected response from server");
+					break;
+
+				case -5:
+					// selected wine does not exists
+					assertTrue(!wines.contains(wine));
+					break;
+
+				default:
+					fail(result + "  idk step bro");
+					break;
+			}
+			return result;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return -2;
 		}
 	}
 }
