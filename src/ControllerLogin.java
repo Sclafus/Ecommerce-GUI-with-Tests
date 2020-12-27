@@ -71,11 +71,9 @@ public class ControllerLogin {
 	 * @throws IOException if an I/O error occurs when creating the socket.
 	 * @see User
 	 */
-	@FXML
-	public void login(ActionEvent event) throws IOException {
+	//! MODIFIED FOR TESTING PURPOSES
+	public int login(String mail, String pass) throws IOException {
 		// gets the informations
-		String mail = email.getText();
-		String pass = password.getText();
 
 		try {
 			Socket socket = new Socket("localhost", 4316);
@@ -97,57 +95,25 @@ public class ControllerLogin {
 
 					int permission = user.getPermission();
 					this.currentUser = user;
-					Loader loader = new Loader(this.currentUser, this.rootPane);
-
-					// different cases are distinguished based on the User's permission
-					switch (permission) {
-						// permission = 1 ->it's a user and the user's homepage is loaded
-						case 1:
-							loader.load("homepage_user");
-							break;
-
-						// permission = 2 ->it's an employee and the employee's homepage is loaded
-						case 2:
-							loader.load("homepage_employee");
-							break;
-
-						// permission = 3 ->it's an admin and the admin's homepage is loaded
-						case 3:
-							loader.load("homepage_admin");
-							break;
-
-						default:
-							// notifies the user if a wrong email or password are inserted
-							Alert alert = new Alert(AlertType.WARNING);
-							alert.setTitle("Wrong login");
-							alert.setHeaderText("Email or password are wrong. Please retry.");
-							alert.showAndWait();
-							password.clear();
-							break;
-					}
 					socket.close();
+					return permission;
 				} else {
-					// notifies the user if the email is not valid
-					Alert alert = new Alert(AlertType.WARNING);
-					alert.setTitle("Email not valid");
-					alert.setHeaderText("The provided email is not valid, please retry.");
-					alert.showAndWait();
+					// email not valid
+					socket.close();
+					return -1;
 				}
 			} else {
 				// notifies if some fields are not filled
-				Alert alert = new Alert(AlertType.WARNING);
-				alert.setTitle("All fields must be filled");
-				alert.setHeaderText("Please fill all the fields");
-				alert.showAndWait();
+				socket.close();
+				return -2;
 			}
 		} catch (ConnectException e) {
 			// notifies if the server can not be reached
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setTitle("Cannot connect to server");
-			alert.setHeaderText("Server is unreachable. Try again later.");
-			alert.showAndWait();
+			return -3;
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			return -4;
+		} catch (NullPointerException e) {
+			return -2;
 		}
 	}
 
