@@ -175,7 +175,6 @@ public class ControllerHomepageUser implements Controller {
 	 * @see User
 	 */
 	@FXML
-	@SuppressWarnings("unused")
 	public void addToCart(ActionEvent event) throws UnknownHostException, IOException {
 		// permission check, guests can't add to cart
 		if (this.currentUser.getPermission() > 0) {
