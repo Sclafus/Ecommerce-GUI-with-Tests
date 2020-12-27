@@ -25,7 +25,7 @@ import javafx.scene.layout.AnchorPane;
 /**
  * Controller for the User Homepage.
  */
-public class ControllerHomepageUser implements Controller {
+public class ControllerHomepageUser {
 
 	private User currentUser;
 
@@ -72,9 +72,11 @@ public class ControllerHomepageUser implements Controller {
 	 * @see Loader
 	 * @see Wine
 	 */
+	// ! METHOD MODIFIED FOR TESTING PURPOSES
 	@SuppressWarnings("unchecked")
-	public void initData(User user) {
+	public ArrayList<Wine> initData(User user) {
 		this.currentUser = user;
+		ArrayList<Wine> wines = new ArrayList<Wine>();
 
 		try {
 			// Fill the frontpage with wines.
@@ -89,36 +91,13 @@ public class ControllerHomepageUser implements Controller {
 			// server ->client
 			InputStream inputStream = socket.getInputStream();
 			ObjectInputStream in = new ObjectInputStream(inputStream);
-			ArrayList<Wine> wines = (ArrayList<Wine>) in.readObject();
-
-			// adds the wine of the shop to the TableView to be displayed
-			addToTable(wines);
+			wines = (ArrayList<Wine>) in.readObject();
 			socket.close();
-
-			// Checks notifications.
-			Socket socket2 = new Socket("localhost", 4316);
-
-			// client -> server
-			OutputStream outputStream2 = socket2.getOutputStream();
-			ObjectOutputStream out2 = new ObjectOutputStream(outputStream2);
-			String[] toBeSentNotifications = { "get_notifications", this.currentUser.getEmail() };
-			out2.writeObject(toBeSentNotifications);
-
-			// server -> client
-			InputStream inputStream2 = socket2.getInputStream();
-			ObjectInputStream in2 = new ObjectInputStream(inputStream2);
-			ArrayList<Wine> notification = (ArrayList<Wine>) in2.readObject();
-
-			// displays the correct notification to the User
-			displayNotifications(notification);
-			socket2.close();
-
-			// displays the orders made by the User
-			displayOrders();
-
+			return wines;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return wines;
 	}
 
 	/**
@@ -173,28 +152,25 @@ public class ControllerHomepageUser implements Controller {
 	 *                              determined.
 	 * @throws IOException          if an I/O error occurs when creating the socket.
 	 * @see User
+	 * TODO: rewrite this javadoc
 	 */
-	@FXML
-	public void addToCart(ActionEvent event) throws UnknownHostException, IOException {
+	// ! METHOD MODIFIED FOR TESTING PURPOSES
+	public int addToCart(Wine wine, int quantity) throws UnknownHostException, IOException {
 		// permission check, guests can't add to cart
 		if (this.currentUser.getPermission() > 0) {
 			Socket socket = new Socket("localhost", 4316);
 
 			try {
-				// gets the quantity given by the User
-				int quantity = Integer.parseInt(this.quantity.getText());
-
 				// quantity check
 				if (quantity > 0) {
 
 					// getting selection of the tableview
-					Wine wine = tableView.getSelectionModel().getSelectedItem();
 
 					// client -> server
 					OutputStream outputStream = socket.getOutputStream();
 					ObjectOutputStream out = new ObjectOutputStream(outputStream);
 					String[] toBeSent = { "add_to_cart", this.currentUser.getEmail(),
-							String.valueOf(wine.getProductId()), this.quantity.getText() };
+							String.valueOf(wine.getProductId()), String.valueOf(quantity) };
 					out.writeObject(toBeSent);
 
 					// server -> client
@@ -204,39 +180,28 @@ public class ControllerHomepageUser implements Controller {
 
 					if (addResult) {
 						// operation addToCart was successful
-						Alert alert = new Alert(AlertType.INFORMATION);
-						alert.setTitle(String.format("Added to cart"));
-						alert.setHeaderText(String.format("Added %s to cart.", wine.getName()));
-						alert.showAndWait();
+						return 0;
 					} else {
 						// operation addToCart was not successful
-						Alert alert = new Alert(AlertType.WARNING);
-						alert.setTitle(String.format("Select a wine"));
-						alert.setHeaderText("You have to click on a Wine, enter the quantity and then Add.");
-						alert.showAndWait();
+						return -5;
 					}
 				} else {
-					Alert alert = new Alert(AlertType.WARNING);
-					alert.setTitle(String.format("Quantity not valid"));
-					alert.setHeaderText("Please insert a valid quantity.");
-					alert.showAndWait();
+					// quantity is negative
+					socket.close();
+					return -3;
 				}
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
+				// unexpected response from server
+				socket.close();
+				return -4;
 			} catch (NumberFormatException e) {
 				// the quantity was non inserted correctly
-				Alert alert = new Alert(AlertType.WARNING);
-				alert.setTitle(String.format("Insert quantity"));
-				alert.setHeaderText("Please insert the quantity.");
-				alert.showAndWait();
+				socket.close();
+				return -2;
 			}
-			socket.close();
 		} else {
 			// the User is a guest, so he needs to login first
-			Alert alert = new Alert(AlertType.INFORMATION);
-			alert.setTitle("Please login");
-			alert.setHeaderText("You need to login to perform this action.");
-			alert.showAndWait();
+			return -1;
 		}
 	}
 
