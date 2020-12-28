@@ -22,7 +22,7 @@ import javafx.scene.control.TableView;
  * Controller for Cart, page accessible by {@code User} with permission > 0 (aka
  * everyone)
  */
-public class ControllerCart implements Controller {
+public class ControllerCart {
 
 	private User currentUser;
 
@@ -52,9 +52,11 @@ public class ControllerCart implements Controller {
 	 * @param user the {@code User} we want to pass. [User]
 	 * @see Loader
 	 */
+	// ! method modified for testing purposes
 	@SuppressWarnings("unchecked")
-	public void initData(User user) {
+	public ArrayList<Wine> initData(User user) {
 		this.currentUser = user;
+		ArrayList<Wine> cartResult = new ArrayList<Wine>();
 
 		try {
 			Socket socket = new Socket("localhost", 4316);
@@ -69,12 +71,12 @@ public class ControllerCart implements Controller {
 			InputStream inputStream = socket.getInputStream();
 			ObjectInputStream in = new ObjectInputStream(inputStream);
 
-			ArrayList<Wine> cartResult = (ArrayList<Wine>) in.readObject();
-			addToTable(cartResult);
+			cartResult = (ArrayList<Wine>) in.readObject();
 			socket.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return cartResult;
 	}
 
 	/**
@@ -115,10 +117,11 @@ public class ControllerCart implements Controller {
 	 * @throws UnknownHostException if the IP address of the host could not be
 	 *                              determined.
 	 * @throws IOException          if an I/O error occurs when creating the socket.
-	 * @see User
+	 * @see User TODO fix javadoc
 	 */
-	@FXML
-	public void buy(ActionEvent event) throws IOException, UnknownHostException {
+	// ! Method modified for testing purposes!
+	public ArrayList<Wine> buy() throws IOException, UnknownHostException {
+		ArrayList<Wine> winesAfterOrder = new ArrayList<Wine>();
 		if (this.currentUser.getPermission() > 0) {
 			// user is authorized to perform the action
 			Socket socket = new Socket("localhost", 4316);
@@ -135,31 +138,19 @@ public class ControllerCart implements Controller {
 
 			try {
 				Order newOrder = (Order) in.readObject();
-				initData(this.currentUser);
-				if (newOrder.getId() == 0) {
-					Alert alert = new Alert(AlertType.WARNING);
-					alert.setTitle("Order failed!");
-					alert.setHeaderText(String.format(
-							"Your order has been not been placed!\nWe do not enough in stock. We will send a notification once we restock"));
-					alert.showAndWait();
-				} else {
-					Alert alert = new Alert(AlertType.INFORMATION);
-					alert.setTitle("Order submitted!");
-					alert.setHeaderText(String.format("Your order has been placed!\nOrder ID: %d", newOrder.getId()));
-					alert.setContentText(
-							"(If some wines are left in your cart we either are out of stock or they are not available in the desired quantity, you will receive a notification once we restock!)");
-					alert.showAndWait();
-				}
+				socket.close();
+				ArrayList<Wine> winesOrder = newOrder.getWines();
+				winesAfterOrder.removeAll(winesOrder);
+				return winesAfterOrder;
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
+				socket.close();
+				winesAfterOrder.add(new Wine());
+				return winesAfterOrder;
 			}
-			socket.close();
 		} else {
 			// user is not authorized to perform the action
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setTitle("Not authorized");
-			alert.setHeaderText("You are not allowed to perform this action.");
-			alert.showAndWait();
+			return winesAfterOrder;
 		}
 	}
 
