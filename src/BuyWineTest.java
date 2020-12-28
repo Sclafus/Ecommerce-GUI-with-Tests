@@ -38,7 +38,7 @@ public class BuyWineTest {
 				// wine has been added successfully, let's continue
 				System.out.format("Added %d to %s's cart, %d unit(s)\n", wine_id, mail, wine_quantity);
 				int submitResult = submitOrder(user);
-				if(submitResult == 0){
+				if (submitResult == 0) {
 					System.out.println("let's gooo");
 				}
 
@@ -207,15 +207,17 @@ public class BuyWineTest {
 			try {
 				result = cartobj.buy();
 
-				//TODO doesn't work fix this
 				if (result.size() == 0) {
-					assertTrue("Permission: "+ user.getPermission(),user.getPermission() < 1);
+					// Order submitted
+					assertTrue(user.getPermission() > 0);
+				} else if (result.get(0).equals(new Wine())) {
+					// catched by ClassNotFound Exception
+					fail("Unexpected response from server");
+				} else if(result.get(0).getProductId() == 0){
+					// insufficient permissions
+					assertTrue(user.getPermission() < 1);
 				} else {
-					if (result.get(0).equals(new Wine())) {
-						assertTrue(cart.containsAll(result));
-					} else {
-						assertTrue(cart.size() < result.size());
-					}
+					fail("idk bro");
 				}
 
 				// return result;
