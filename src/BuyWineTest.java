@@ -15,9 +15,12 @@ public class BuyWineTest {
 
 	private ControllerLogin loginobj;
 	private ControllerHomepageUser homepageobj;
+	private ControllerCart cartobj;
 
 	@ParameterizedTest
-	@CsvSource({ "user@user.com, pwd, 20, wine1, producer1, 2015, notes1, 10, grapes1" })
+	@CsvSource({ "user@user.com, pwd, 20, wine1, producer1, 2015, notes1, 1, grapes1", 
+			"employee@employee.com, pwd, 21, wine2, producer2, 2017, notes2, 1, grapes2",
+			"admin@admin.com, pwd, 22, wine3, producer3, 2010, notes3, 1, grapes3", })
 	/*
 	 * "employee@employee.com, pwd", "admin@admin.com, pwd", "asd@asd.com, pwd",
 	 * ", asd", "asd@asd.com," })
@@ -25,17 +28,24 @@ public class BuyWineTest {
 	public void procedure(String mail, String pass, int wine_id, String wine_name, String wine_producer, int wine_year,
 			String wine_notes, int wine_quantity, String wine_grapes) {
 		int permission = login(mail, pass);
-		User user = new User("name", "sur", mail, pass, permission);
+		User user = new User("Placeholder", "Placeholder", mail, pass, permission);
 
 		if (permission > 0) {
 			Wine wine = new Wine(wine_id, wine_name, wine_producer, wine_year, wine_notes, wine_quantity, wine_grapes);
 			int addResult = addWine(wine, user);
 
 			if (addResult == 0) {
-				System.out.println("yay");
+				System.out.format("Added %d to %s's cart, %d unit(s)", wine_id, mail, wine_quantity);
 			} else {
-				System.out.println("sad");
+				// addresult < 0 only if the wine is already in the cart
+				fail("Wine " + wine_id + " is already present in the cart for user" + mail);
 			}
+		} else if (permission == 0) {
+			// permission = 0 if the user does not exist.
+			System.out.format("%s does not exist in the database\n", mail);
+		} else {
+			// permission < 0 only if mail or pass are null
+			assertTrue((mail == null) || (pass == null));
 		}
 	}
 
@@ -49,8 +59,8 @@ public class BuyWineTest {
 	 *         else a number < 0
 	 */
 	@ParameterizedTest
-	@CsvSource({ "user@user.com, pwd","employee@employee.com, pwd", "admin@admin.com, pwd", "asd@asd.com, pwd",
-	  ", asd", "asd@asd.com," })
+	// @CsvSource({ "user@user.com, pwd", "employee@employee.com, pwd", "admin@admin.com, pwd", "asd@asd.com, pwd",
+	// 		", asd", "asd@asd.com," })
 	public int login(String mail, String pass) {
 		loginobj = new ControllerLogin();
 		try {
@@ -140,7 +150,8 @@ public class BuyWineTest {
 					break;
 
 				case -2:
-					fail("this should never happen");
+					// quantity error
+					fail("Incorrect format for quantity");
 					break;
 
 				case -3:
@@ -149,7 +160,8 @@ public class BuyWineTest {
 					break;
 
 				case -4:
-					fail("unexpected response from server");
+					// unexpected conversion error
+					fail("Unexpected response from server");
 					break;
 
 				case -5:
@@ -158,7 +170,7 @@ public class BuyWineTest {
 					break;
 
 				default:
-					fail(result + "  idk step bro");
+					fail("Unexpected result: " + result);
 					break;
 			}
 			return result;
