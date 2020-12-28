@@ -18,7 +18,7 @@ public class BuyWineTest {
 	private ControllerCart cartobj;
 
 	@ParameterizedTest
-	@CsvSource({ "user@user.com, pwd, 20, wine1, producer1, 2015, notes1, 1, grapes1", 
+	@CsvSource({ "user@user.com, pwd, 20, wine1, producer1, 2015, notes1, 1, grapes1",
 			"employee@employee.com, pwd, 21, wine2, producer2, 2017, notes2, 1, grapes2",
 			"admin@admin.com, pwd, 22, wine3, producer3, 2010, notes3, 1, grapes3", })
 	/*
@@ -35,7 +35,13 @@ public class BuyWineTest {
 			int addResult = addWine(wine, user);
 
 			if (addResult == 0) {
-				System.out.format("Added %d to %s's cart, %d unit(s)", wine_id, mail, wine_quantity);
+				// wine has been added successfully, let's continue
+				System.out.format("Added %d to %s's cart, %d unit(s)\n", wine_id, mail, wine_quantity);
+				int submitResult = submitOrder(user);
+				if(submitResult == 0){
+					System.out.println("let's gooo");
+				}
+
 			} else {
 				// addresult < 0 only if the wine is already in the cart
 				fail("Wine " + wine_id + " is already present in the cart for user" + mail);
@@ -59,8 +65,9 @@ public class BuyWineTest {
 	 *         else a number < 0
 	 */
 	@ParameterizedTest
-	// @CsvSource({ "user@user.com, pwd", "employee@employee.com, pwd", "admin@admin.com, pwd", "asd@asd.com, pwd",
-	// 		", asd", "asd@asd.com," })
+	// @CsvSource({ "user@user.com, pwd", "employee@employee.com, pwd",
+	// "admin@admin.com, pwd", "asd@asd.com, pwd",
+	// ", asd", "asd@asd.com," })
 	public int login(String mail, String pass) {
 		loginobj = new ControllerLogin();
 		try {
@@ -125,7 +132,7 @@ public class BuyWineTest {
 	}
 
 	/**
-	 * TODO Do this javadoc
+	 * TODO this javadoc
 	 * 
 	 * @param wine
 	 * @param quantity
@@ -135,6 +142,10 @@ public class BuyWineTest {
 	public int addWine(Wine wine, User user) {
 		homepageobj = new ControllerHomepageUser();
 		ArrayList<Wine> wines = homepageobj.initData(user);
+
+		if (wines.isEmpty()) {
+			fail("No wines available");
+		}
 
 		try {
 			int result = homepageobj.addToCart(wine, wine.getQuantity());
@@ -178,5 +189,43 @@ public class BuyWineTest {
 			e.printStackTrace();
 			return -2;
 		}
+	}
+
+	/**
+	 * TODO this javadoc
+	 * 
+	 * @return
+	 */
+	@ParameterizedTest
+	public int submitOrder(User user) {
+		cartobj = new ControllerCart();
+		ArrayList<Wine> cart = cartobj.initData(user);
+		ArrayList<Wine> result = new ArrayList<Wine>();
+
+		if (!cart.isEmpty()) {
+			// cart not empty
+			try {
+				result = cartobj.buy();
+
+				//TODO doesn't work fix this
+				if (result.size() == 0) {
+					assertTrue("Permission: "+ user.getPermission(),user.getPermission() < 1);
+				} else {
+					if (result.get(0).equals(new Wine())) {
+						assertTrue(cart.containsAll(result));
+					} else {
+						assertTrue(cart.size() < result.size());
+					}
+				}
+
+				// return result;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			// cart empty
+			fail("Cart is empty for " + user.getEmail());
+		}
+		return 0;
 	}
 }
