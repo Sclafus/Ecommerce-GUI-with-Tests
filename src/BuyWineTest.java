@@ -22,31 +22,45 @@ public class BuyWineTest {
 
 	@ParameterizedTest
 	@CsvFileSource(resources = "./testSet.csv", numLinesToSkip = 1)
-	public void procedure(String mail, String pass, int wineId, String wineName, String wine_producer, int wineYear,
+	public void procedure(String mail, String pass, int wineId, String wineName, String wineProducer, int wineYear,
 			String wineNotes, int wineQuantity, String wineGrapes) {
+		System.out.format("\n---Initializing test for user %s, wine %d, quantity %d---\n");
 		int permission = login(mail, pass);
 		User user = new User("Placeholder", "Placeholder", mail, pass, permission);
 
 		if (permission > 0) {
-			Wine wine = new Wine(wineId, wineName, wine_producer, wineYear, wineNotes, wineQuantity, wineGrapes);
+			Wine wine = new Wine(wineId, wineName, wineProducer, wineYear, wineNotes, wineQuantity, wineGrapes);
 			int addResult = addWine(wine, user);
 
-			if (addResult == 0) {
-				// wine has been added successfully, let's continue
-				System.out.format("Added %d to %s's cart, %d unit(s)\n", wineId, mail, wineQuantity);
-				int submitResult = submitOrder(user);
+			switch (addResult) {
+				case 0:
+					// wine has been added successfully, let's continue
+					int submitResult = submitOrder(user);
 
-				if (submitResult == 0) {
-					// Order placed successfully
-					System.out.format("Order has been placed for user %s\n", mail);
-				} else {
-					System.out.format("Order has not been placed for user %s\n", mail);
-				}
-			} else if(addResult == -5){
-				System.out.format("Wine %d doesn't exist.\n", wineId);
-			} else {
-				// addresult < 0 only if the wine is already in the cart
-				fail("Wine " + wineId + " is already present in the cart for user " + mail);
+					if (submitResult == 0) {
+						// Order placed successfully
+						System.out.format("Order with wine %d, %d unit(s) has been placed for user %s\n", wineId,
+								wineQuantity, mail);
+					} else {
+						System.out.format("Order with wine %d, %d unit(s) has NOT been placed for user %s\n", wineId,
+								wineQuantity, mail);
+					}
+					break;
+
+				case -3:
+					// specified quantity is negative
+					assertTrue(wineQuantity <= 0);
+					System.out.format("Inserted quantity is negative: %d\n", wineQuantity);
+					break;
+
+				case -5:
+					// wine does not exist
+					System.out.format("Wine %d doesn't exist or the specified quantity is not in stock.\n", wineId);
+					break;
+
+				default:
+					fail("This should never happen");
+					break;
 			}
 		} else if (permission == 0) {
 			// permission = 0 if the user does not exist.
@@ -67,9 +81,6 @@ public class BuyWineTest {
 	 *         else a number < 0
 	 */
 	@ParameterizedTest
-	// @CsvSource({ "user@user.com, pwd", "employee@employee.com, pwd",
-	// "admin@admin.com, pwd", "asd@asd.com, pwd",
-	// ", asd", "asd@asd.com," })
 	public int login(String mail, String pass) {
 		loginobj = new ControllerLogin();
 		try {
@@ -216,7 +227,7 @@ public class BuyWineTest {
 				} else if (result.get(0).equals(new Wine())) {
 					// catched by ClassNotFound Exception
 					fail("Unexpected response from server");
-				} else if(result.get(0).getProductId() == 0){
+				} else if (result.get(0).getProductId() == 0) {
 					// insufficient permissions
 					assertTrue(user.getPermission() < 1);
 				} else {
