@@ -122,6 +122,7 @@ public class ControllerCart {
 	// ! Method modified for testing purposes!
 	public ArrayList<Wine> buy() throws IOException, UnknownHostException {
 		ArrayList<Wine> winesAfterOrder = new ArrayList<Wine>();
+
 		if (this.currentUser.getPermission() > 0) {
 			// user is authorized to perform the action
 			Socket socket = new Socket("localhost", 4316);
@@ -150,6 +151,7 @@ public class ControllerCart {
 			}
 		} else {
 			// user is not authorized to perform the action
+			winesAfterOrder.add(new Wine(0, "", "", 0, "", 0, ""));
 			return winesAfterOrder;
 		}
 	}
