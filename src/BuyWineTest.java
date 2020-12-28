@@ -24,7 +24,7 @@ public class BuyWineTest {
 	@CsvFileSource(resources = "./testSet.csv", numLinesToSkip = 1)
 	public void procedure(String mail, String pass, int wineId, String wineName, String wineProducer, int wineYear,
 			String wineNotes, int wineQuantity, String wineGrapes) {
-		System.out.format("\n---Initializing test for user %s, wine %d, quantity %d---\n");
+		System.out.format("\n---Initializing test for user %s, wine %d, quantity %d---\n", mail, wineId, wineQuantity);
 		int permission = login(mail, pass);
 		User user = new User("Placeholder", "Placeholder", mail, pass, permission);
 
@@ -59,15 +59,16 @@ public class BuyWineTest {
 					break;
 
 				default:
-					fail("This should never happen");
+					fail("Result in addWine not handled.");
 					break;
 			}
 		} else if (permission == 0) {
 			// permission = 0 if the user does not exist.
-			System.out.format("%s does not exist in the database\n", mail);
+			System.out.format("%s is not present in the database\n", mail);
 		} else {
 			// permission < 0 only if mail or pass are null
 			assertTrue((mail == null) || (pass == null));
+			System.out.println("mail or password are nulls");
 		}
 	}
 
