@@ -25,20 +25,21 @@ public class BuyWineTest {
 	 * Sistematic procedure to login with the specified credentials, adding a wine
 	 * with the specified paramters to the cart and submitting the order.
 	 * 
-	 * @param mail         mail of the {@code User}. [String]
-	 * @param pass         pass of the {@code User}. [String]
-	 * @param wineId       id of the {@code Wine}. [int]
-	 * @param wineName     name of the {@code Wine}. [String]
-	 * @param wineProducer producer of the {@code Wine}. [String]
-	 * @param wineYear     year of the {@code Wine}. [int]
-	 * @param wineNotes    notes of the {@code Wine}. [String]
-	 * @param wineQuantity quantity of the {@code Wine}. [int]
-	 * @param wineGrapes   grapes of the {@code Wine}. [String]
+	 * @param mail         Mail of the {@code User}. [String]
+	 * @param pass         Pass of the {@code User}. [String]
+	 * @param wineId       Id of the {@code Wine}. [int]
+	 * @param wineName     Name of the {@code Wine}. [String]
+	 * @param wineProducer Producer of the {@code Wine}. [String]
+	 * @param wineYear     Year of the {@code Wine}. [int]
+	 * @param wineNotes    Notes of the {@code Wine}. [String]
+	 * @param wineQuantity Quantity of the {@code Wine}. [int]
+	 * @param wineGrapes   Grapes of the {@code Wine}. [String]
 	 */
 	@ParameterizedTest
 	@CsvFileSource(resources = "./testSet.csv", numLinesToSkip = 1)
 	public void procedure(String mail, String pass, int wineId, String wineName, String wineProducer, int wineYear,
 			String wineNotes, int wineQuantity, String wineGrapes) {
+
 		System.out.format("\n---Initializing test for user %s, wine %d, quantity %d---\n", mail, wineId, wineQuantity);
 		int permission = login(mail, pass);
 		User user = new User("Placeholder", "Placeholder", mail, pass, permission);
@@ -88,22 +89,24 @@ public class BuyWineTest {
 	}
 
 	/**
-	 * Test the login with an user, an employee and an admin. Also checks with a non
-	 * registered user, and some with empty parameters. TODO finish this javadoc
+	 * Test method for login.
 	 * 
-	 * @param mail mail of the user
-	 * @param pass password of the user
-	 * @return 1, 2 or 3 in case of success, based on the permission of the user,
-	 *         else a number < 0
+	 * @param mail Mail of the {@code User}. [String]
+	 * @param pass Password of the {@code User}. [String]
+	 * @return 1, 2 or 3 in case of success, based on the permission of the
+	 *         {@code User}, else a number <= 0 that indicates a non valid input.
 	 */
 	@ParameterizedTest
 	public int login(String mail, String pass) {
 		loginObj = new ControllerLogin();
+
 		try {
 			int res = loginObj.login(mail, pass);
+
 			if (res == -3) {
 				fail("Server is unreachable");
 			}
+
 			switch (res) {
 
 				case 1:
@@ -125,6 +128,7 @@ public class BuyWineTest {
 					break;
 
 				case 0:
+					// invalid credentials
 					assertAll(() -> assertNotNull(mail), () -> assertNotNull(pass));
 					assertEquals(0, res);
 					break;
@@ -135,6 +139,7 @@ public class BuyWineTest {
 					break;
 
 				case -2:
+					// either password or mail are null
 					if (pass == null) {
 						assertNull(pass);
 					} else if (mail == null) {
@@ -145,11 +150,11 @@ public class BuyWineTest {
 					break;
 
 				case -4:
-					fail("returned object is not a User object");
+					// unexpected response from server
+					fail("Unexpected response from server");
 					break;
 
 				default:
-					System.out.println(res);
 					fail("Unknown output");
 					break;
 			}
@@ -161,11 +166,23 @@ public class BuyWineTest {
 	}
 
 	/**
-	 * TODO this javadoc
+	 * Test method to add a Wine to the cart.
 	 * 
-	 * @param wine
-	 * @param quantity
-	 * @param user
+	 * @param wine The {@code Wine} we want to add to the cart. [Wine]
+	 * @param user The {@code User} that wants to add the {@code Wine}. [User]
+	 * @return
+	 *         <ul>
+	 *         <li>0 if the {@code Wine} has been added successfully to the
+	 *         cart</li>
+	 *         <li>-1 if the {@code User} permission is insufficient.</li>
+	 *         <li>-2 if the quantity can't be converted to String (it should never
+	 *         occur) or there's an unexpected error.</li>
+	 *         <li>-3 if the quantity is negative.</li>
+	 *         <li>-4 if the server responds in an unexpected way.</li>
+	 *         <li>-5 if the wine can't be added to the cart.</li>
+	 *         </ul>
+	 * @see User
+	 * @see Wine
 	 */
 	@ParameterizedTest
 	public int addWine(Wine wine, User user) {
@@ -222,9 +239,12 @@ public class BuyWineTest {
 	}
 
 	/**
-	 * TODO this javadoc
+	 * Test method to submit an Order.
 	 * 
-	 * @return
+	 * @param user The {@code User} that wants to submit a new {@code Order}. [User]
+	 * @return 0 if the order has been submitted successfully, else -1.
+	 * @see Order
+	 * @see User
 	 */
 	@ParameterizedTest
 	public int submitOrder(User user) {
@@ -240,6 +260,7 @@ public class BuyWineTest {
 				if (result.size() == 0) {
 					// Order submitted
 					assertTrue(user.getPermission() > 0);
+					return 0;
 				} else if (result.get(0).equals(new Wine())) {
 					// catched by ClassNotFound Exception
 					fail("Unexpected response from server");
@@ -247,10 +268,9 @@ public class BuyWineTest {
 					// insufficient permissions
 					assertTrue(user.getPermission() < 1);
 				} else {
-					fail("idk bro");
+					// else
+					fail("Unhandled test case");
 				}
-
-				// return result;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -258,6 +278,6 @@ public class BuyWineTest {
 			// cart empty
 			fail("Cart is empty for " + user.getEmail());
 		}
-		return 0;
+		return -1;
 	}
 }
