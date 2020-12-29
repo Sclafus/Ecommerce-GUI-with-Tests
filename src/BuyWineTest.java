@@ -12,14 +12,29 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
 /**
- * TODO javadoc
+ * Test class. This class contains the sufficient methods to login, add a wine
+ * to the cart and submit an order.
  */
 public class BuyWineTest {
 
-	private ControllerLogin loginobj;
-	private ControllerHomepageUser homepageobj;
-	private ControllerCart cartobj;
+	private ControllerLogin loginObj;
+	private ControllerHomepageUser homepageObj;
+	private ControllerCart cartObj;
 
+	/**
+	 * Sistematic procedure to login with the specified credentials, adding a wine
+	 * with the specified paramters to the cart and submitting the order.
+	 * 
+	 * @param mail         mail of the {@code User}. [String]
+	 * @param pass         pass of the {@code User}. [String]
+	 * @param wineId       id of the {@code Wine}. [int]
+	 * @param wineName     name of the {@code Wine}. [String]
+	 * @param wineProducer producer of the {@code Wine}. [String]
+	 * @param wineYear     year of the {@code Wine}. [int]
+	 * @param wineNotes    notes of the {@code Wine}. [String]
+	 * @param wineQuantity quantity of the {@code Wine}. [int]
+	 * @param wineGrapes   grapes of the {@code Wine}. [String]
+	 */
 	@ParameterizedTest
 	@CsvFileSource(resources = "./testSet.csv", numLinesToSkip = 1)
 	public void procedure(String mail, String pass, int wineId, String wineName, String wineProducer, int wineYear,
@@ -83,9 +98,9 @@ public class BuyWineTest {
 	 */
 	@ParameterizedTest
 	public int login(String mail, String pass) {
-		loginobj = new ControllerLogin();
+		loginObj = new ControllerLogin();
 		try {
-			int res = loginobj.login(mail, pass);
+			int res = loginObj.login(mail, pass);
 			if (res == -3) {
 				fail("Server is unreachable");
 			}
@@ -116,7 +131,7 @@ public class BuyWineTest {
 
 				case -1:
 					// email is not valid (not an email)
-					assertEquals(false, loginobj.isMail(mail));
+					assertEquals(false, loginObj.isMail(mail));
 					break;
 
 				case -2:
@@ -154,15 +169,15 @@ public class BuyWineTest {
 	 */
 	@ParameterizedTest
 	public int addWine(Wine wine, User user) {
-		homepageobj = new ControllerHomepageUser();
-		ArrayList<Wine> wines = homepageobj.initData(user);
+		homepageObj = new ControllerHomepageUser();
+		ArrayList<Wine> wines = homepageObj.initData(user);
 
 		if (wines.isEmpty()) {
 			fail("No wines available");
 		}
 
 		try {
-			int result = homepageobj.addToCart(wine, wine.getQuantity());
+			int result = homepageObj.addToCart(wine, wine.getQuantity());
 
 			switch (result) {
 				case 0:
@@ -213,14 +228,14 @@ public class BuyWineTest {
 	 */
 	@ParameterizedTest
 	public int submitOrder(User user) {
-		cartobj = new ControllerCart();
-		ArrayList<Wine> cart = cartobj.initData(user);
+		cartObj = new ControllerCart();
+		ArrayList<Wine> cart = cartObj.initData(user);
 		ArrayList<Wine> result = new ArrayList<Wine>();
 
 		if (!cart.isEmpty()) {
 			// cart not empty
 			try {
-				result = cartobj.buy();
+				result = cartObj.buy();
 
 				if (result.size() == 0) {
 					// Order submitted
