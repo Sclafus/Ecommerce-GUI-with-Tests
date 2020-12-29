@@ -111,15 +111,15 @@ public class ControllerCart {
 	}
 
 	/**
-	 * Allows the {@code User} to buy the items in his cart.
+	 * Allows the {@code User} to buy the items in his cart. 
+	 * This method has been modified for testing purposes.
 	 * 
 	 * @param event GUI event. [ActionEvent]
 	 * @throws UnknownHostException if the IP address of the host could not be
 	 *                              determined.
 	 * @throws IOException          if an I/O error occurs when creating the socket.
-	 * @see User TODO fix javadoc
+	 * @return The wines that have been bought. [ArrayList of Wine]
 	 */
-	// ! Method modified for testing purposes!
 	public ArrayList<Wine> buy() throws IOException, UnknownHostException {
 		ArrayList<Wine> winesAfterOrder = new ArrayList<Wine>();
 
@@ -140,8 +140,7 @@ public class ControllerCart {
 			try {
 				Order newOrder = (Order) in.readObject();
 				socket.close();
-				ArrayList<Wine> winesOrder = newOrder.getWines();
-				winesAfterOrder.removeAll(winesOrder);
+				winesAfterOrder = newOrder.getWines();
 				return winesAfterOrder;
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
