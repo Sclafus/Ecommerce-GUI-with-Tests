@@ -145,16 +145,27 @@ public class ControllerHomepageUser {
 	}
 
 	/**
-	 * Allows the {@code User} to add the wines to his cart.
+	 * Allows the {@code User} to add the wines to his cart. This method has been
+	 * modified for testing purposes.
 	 * 
-	 * @param event GUI event. [ActionEvent]
+	 * @param wine The wine to add in the cart. [Wine]
+	 * @param quantity The quantity for the specified wine. [int]
 	 * @throws UnknownHostException if the IP address of the host could not be
 	 *                              determined.
 	 * @throws IOException          if an I/O error occurs when creating the socket.
+	 * @return
+	 *         <ul>
+	 *         <li>0 if the {@code Wine} has been added successfully to the
+	 *         cart</li>
+	 *         <li>-1 if the {@code User} permission is insufficient.</li>
+	 *         <li>-2 if the quantity can't be converted to String (it should never occur).</li>
+	 *         <li>-3 if the quantity is negative.</li>
+	 *         <li>-4 if the server responds in an unexpected way.</li>
+	 *         <li>-5 if the wine can't be added to the cart.</li>
+	 *         </ul>
 	 * @see User
-	 * TODO: rewrite this javadoc
+	 * 
 	 */
-	// ! METHOD MODIFIED FOR TESTING PURPOSES
 	public int addToCart(Wine wine, int quantity) throws UnknownHostException, IOException {
 		// permission check, guests can't add to cart
 		if (this.currentUser.getPermission() > 0) {
@@ -163,9 +174,6 @@ public class ControllerHomepageUser {
 			try {
 				// quantity check
 				if (quantity > 0) {
-
-					// getting selection of the tableview
-
 					// client -> server
 					OutputStream outputStream = socket.getOutputStream();
 					ObjectOutputStream out = new ObjectOutputStream(outputStream);
