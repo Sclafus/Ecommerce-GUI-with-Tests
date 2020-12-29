@@ -257,19 +257,22 @@ public class BuyWineTest {
 			try {
 				result = cartObj.buy();
 
-				if (result.size() == 0) {
+				if (result.size() > 0) {
 					// Order submitted
+					if (result.get(0).equals(new Wine())) {
+						// catched by ClassNotFound Exception
+						fail("Unexpected response from server");
+					} else if (result.get(0).getProductId() == 0) {
+						// insufficient permissions
+						assertTrue(user.getPermission() < 1);
+					} else {
+						// order submitted successfully
+						return 0;
+					}
 					assertTrue(user.getPermission() > 0);
-					return 0;
-				} else if (result.get(0).equals(new Wine())) {
-					// catched by ClassNotFound Exception
-					fail("Unexpected response from server");
-				} else if (result.get(0).getProductId() == 0) {
-					// insufficient permissions
-					assertTrue(user.getPermission() < 1);
 				} else {
-					// else
-					fail("Unhandled test case");
+					Wine wine = cart.get(0);
+					System.out.format("Wine %d quantity is too high (%d)", wine.getProductId(), wine.getQuantity());
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
