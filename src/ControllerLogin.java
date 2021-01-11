@@ -118,7 +118,7 @@ public class ControllerLogin {
 			// notifies if the server can not be reached
 			return -3;
 		} catch (ClassNotFoundException e) {
-			// unexpected answer from server
+			// unexpected response from server
 			return -4;
 		} catch (NullPointerException e) {
 			return -2;
