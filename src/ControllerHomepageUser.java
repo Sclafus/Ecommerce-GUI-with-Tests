@@ -66,13 +66,14 @@ public class ControllerHomepageUser {
 	 * Initialize {@code this.currentUser} with the passed value. This method is
 	 * made to be called from another controller, using the {@code load} method in
 	 * {@code Loader} class. It also adds all the wines to display to the TableView
-	 * and handles the process to display the notifications.
+	 * and handles the process to display the notifications. This method has been
+	 * modified for testing purposes.
 	 * 
 	 * @param user the {@code User} we want to pass. [User]
 	 * @see Loader
 	 * @see Wine
+	 * @return the list of all the {@Wine}. [ArrayList of Wine]
 	 */
-	// ! METHOD MODIFIED FOR TESTING PURPOSES
 	@SuppressWarnings("unchecked")
 	public ArrayList<Wine> initData(User user) {
 		this.currentUser = user;

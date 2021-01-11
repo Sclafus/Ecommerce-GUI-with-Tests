@@ -65,13 +65,20 @@ public class ControllerLogin {
 	/**
 	 * Login with the data provided by the user. Server responds with the correct
 	 * {@code User} (permission>=1) else it will respond with {@code nullUser}
-	 * (permission=0)
+	 * (permission=0). This method has been modified for testing purposes.
 	 * 
 	 * @param event GUI event. [ActionEvent]
 	 * @throws IOException if an I/O error occurs when creating the socket.
 	 * @see User
+	 * @return <ul>
+	 *         <li>0 if the {@code Wine} has been added successfully to the
+	 *         cart</li>
+	 *         <li>-1 if the inserted email is not valid.</li>
+	 *         <li>-2 if some fields are not filled.</li>
+	 *         <li>-3 if the server cannot be reached.</li>
+	 *         <li>-4 if the server responds in an unexpected way.</li>
+	 *         </ul>
 	 */
-	//! MODIFIED FOR TESTING PURPOSES
 	public int login(String mail, String pass) throws IOException {
 		// gets the informations
 
@@ -111,6 +118,7 @@ public class ControllerLogin {
 			// notifies if the server can not be reached
 			return -3;
 		} catch (ClassNotFoundException e) {
+			// unexpected answer from server
 			return -4;
 		} catch (NullPointerException e) {
 			return -2;

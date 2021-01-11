@@ -47,12 +47,12 @@ public class ControllerCart {
 	/**
 	 * Initialize {@code this.currentUser} with the passed value. This method is
 	 * made to be called from another controller, using the {@code load} method in
-	 * {@code Loader} class.
+	 * {@code Loader} class. This method has been modified for testing purposes.
 	 * 
 	 * @param user the {@code User} we want to pass. [User]
 	 * @see Loader
+	 * @return the list of {@Wine} in the cart. [ArrayList of Wine]
 	 */
-	// ! method modified for testing purposes
 	@SuppressWarnings("unchecked")
 	public ArrayList<Wine> initData(User user) {
 		this.currentUser = user;
@@ -118,7 +118,7 @@ public class ControllerCart {
 	 * @throws UnknownHostException if the IP address of the host could not be
 	 *                              determined.
 	 * @throws IOException          if an I/O error occurs when creating the socket.
-	 * @return The wines that have been bought. [ArrayList of Wine]
+	 * @return The {@Wine} that have been bought. [ArrayList of Wine]
 	 */
 	public ArrayList<Wine> buy() throws IOException, UnknownHostException {
 		ArrayList<Wine> winesAfterOrder = new ArrayList<Wine>();
