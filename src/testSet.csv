@@ -1,4 +1,4 @@
-mail, pass, wineId, wineName, wineProducer, wineYear, wineNotes, wineQuantity, wineGrapes
+mail, pass, wineId, wineName, wineProducer, wineYear, wineNotes, wineQuantity, wineGrapes,
 user@user.com, pwd, 20, wine1, producer1, 2015, notes1, 1, grapes1,
 employee@employee.com, pwd, 21, wine2, producer2, 2017, notes2, 1, grapes2,
 admin@admin.com, pwd, 22, wine3, producer3, 2010, notes3, 1, grapes3,
